@@ -12,6 +12,10 @@ As part of my graduate program in computer science from UT Austin, I took Deep L
 
 Each folder houses a different model and a readme with any relevant notes I felt like adding.
 
+## torchinfo and torchsummary
+
+I recommend torchinfo over torchsummary. Usage is exactly the same, but torchinfo catches shape errors much better, and groups output by class, which is much easier to read.
+
 ## Creation
 
 Like all my libraries, this repo was created and is managed with [Terraform](https://github.com/coyotespike/terraform-scripts), and was based on a template.

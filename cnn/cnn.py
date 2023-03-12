@@ -2,6 +2,7 @@
 
 import torch
 from torchvision import transforms
+from torchinfo import summary
 
 
 class Block(torch.nn.Module):
@@ -44,7 +45,7 @@ class Block(torch.nn.Module):
         return self.net(x)
 
 
-class CNNClassifier(torch.nn.Module):
+class CNN(torch.nn.Module):
     def __init__(
         self,
         layers=[32, 64, 128, 256],
@@ -94,3 +95,8 @@ class CNNClassifier(torch.nn.Module):
         z = z.mean([2, 3])
         prediction = self.classifier(z)
         return prediction
+
+
+if __name__ == "__main__":
+    model = CNN()
+    summary(model, (32, 3, 128, 128))

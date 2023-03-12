@@ -1,6 +1,14 @@
+![](https://upload.wikimedia.org/wikipedia/commons/6/63/Typical_cnn.png)
+
 # CNN
 
 A convolutional network at a fairly basic level!
+
+## Usage
+
+`conda activate <yourenv>`
+`pip install -r ../requirements.txt`
+`python3 cnn.py`
 
 ## Implementation notes
 
