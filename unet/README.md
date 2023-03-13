@@ -6,7 +6,9 @@ This image might be the best paper summary I've ever seen. Channels, input and a
 
 ## Performance
 
-After training for only 5 epochs, this model surpassed the performance of the FCN which trained for over 10 epochs. Each epoch takes a bit over 2 minutes on Google Colab's standard GPU, which on the other hand is over twice as slow as the FCN.
+This model achieves comparable performance to my FCN with the same number of epochs, but each epoch takes about twice as long to train.
+
+Happily, this model currently has nearly 13mil parameters compared to FCN's 450k. Eliminating the two largest layers cuts the parameters to 761k. This speeds training by about 45% (a couple of minutes slower than FCN), with 20% higher accuracy.
 
 Originally, I had rather beautiful Encoder and Decoder classes. Perhaps because the Encoder passed an `outputs` array to each DownConv, with heavy memory usage, the model trained very slowly. Switching to my current clunky implementation sped up training by a factor of 2.
 

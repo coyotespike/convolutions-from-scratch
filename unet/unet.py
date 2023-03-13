@@ -129,7 +129,7 @@ class UNet(torch.nn.Module):
     """
     First normalizes input
 
-    Then passes input down three layers, over one layer, and up three layers
+    Then passes input down four layers, over one layer, and up four layers
 
     On the way up, passes the matching layer output in as well
 
