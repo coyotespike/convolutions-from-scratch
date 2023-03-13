@@ -43,23 +43,6 @@ class SidewaysConv(torch.nn.Module):
         return z + residual
 
 
-class SidewaysConvTuple(torch.nn.Module):
-    """
-    The SidewaysConv again, except it can take a tuple and return the second element unchanged
-
-    This will be used to pass the output of the encoder to the decoder
-    """
-
-    def __init__(self, channels, kernel_size=3, padding=0):
-        super().__init__()
-        self.sideways = SidewaysConv(channels, channels, kernel_size, padding)
-
-    def forward(self, tuple):
-        x, output = tuple
-        x = self.sideways(x)
-        return x, output
-
-
 class DownConv(torch.nn.Module):
     """
     Passes the input sideways, then downsamples
@@ -71,13 +54,13 @@ class DownConv(torch.nn.Module):
         self.sideways = SidewaysConv(in_chan, out_chan)
         self.downsample = torch.nn.MaxPool2d(kernel_size=2)
 
-    def forward(self, x, outputs):
+    def forward(self, x):
 
-        z = self.sideways(x)
-        outputs.append(z)
-        z = self.downsample(z)
+        skip = self.sideways(x)
 
-        return z, outputs
+        z = self.downsample(skip)
+
+        return z, skip
 
 
 class UpConv(torch.nn.Module):
@@ -125,48 +108,6 @@ class UpConv(torch.nn.Module):
         return z
 
 
-class Encoder(torch.nn.Module):
-    """
-    Encodes the input downward, and saves outputs for use later
-    """
-
-    def __init__(self, layers=[(3, 128), (128, 256), (256, 512)]):
-        super().__init__()
-
-        self.outputs = []
-
-        self.layers = torch.nn.ModuleList(
-            [DownConv(in_chan, out_chan) for (in_chan, out_chan) in layers]
-        )
-
-    def forward(self, x):
-        outputs = self.outputs
-        for layer in self.layers:
-            x, outputs = layer(x, outputs)
-
-        return x, outputs
-
-
-class Decoder(torch.nn.Module):
-    """
-    Decodes input upward
-
-    """
-
-    def __init__(self, layers=[512, 256, 128]):
-        super().__init__()
-
-        self.layers = torch.nn.ModuleList([UpConv(chan) for chan in layers])
-
-    def forward(self, x_and_outputs):
-        x, outputs = x_and_outputs
-        for layer in self.layers:
-            out = outputs.pop()
-            x = layer(x, out)
-
-        return x
-
-
 class Normalize(torch.nn.Module):
     """
     Input normalization
@@ -199,26 +140,38 @@ class UNet(torch.nn.Module):
         super().__init__()
 
         self.normalize = Normalize()
-        self.encoder = Encoder()
-        self.sideways = SidewaysConvTuple(256)
-        self.decoder = Decoder()
+        self.down1 = DownConv(3, 64)
+        self.down2 = DownConv(64, 128)
+        self.down3 = DownConv(128, 256)
+        self.down4 = DownConv(256, 512)
 
-        self.classifier = torch.nn.Sequential(
-            torch.nn.Conv2d(64, 5, kernel_size=1),
-        )
+        self.sideways = SidewaysConv(512, 512)
 
-        self.net = torch.nn.Sequential(
-            self.normalize,
-            self.encoder,
-            self.sideways,
-            self.decoder,
-            self.classifier,
-        )
+        self.up1 = UpConv(512)
+        self.up2 = UpConv(256)
+        self.up3 = UpConv(128)
+        self.up4 = UpConv(64)
+
+        self.classify = torch.nn.ConvTranspose2d(32, 5, kernel_size=1)
 
     def forward(self, x):
         _, _, H, W = x.shape
 
-        z = self.net(x)
+        x = self.normalize(x)
+        x, output1 = self.down1(x)
+        x, output2 = self.down2(x)
+        x, output3 = self.down3(x)
+        x, output4 = self.down4(x)
+
+        x = self.sideways(x)
+
+        x = self.up1(x, output4)
+        x = self.up2(x, output3)
+        x = self.up3(x, output2)
+        x = self.up4(x, output1)
+
+        z = self.classify(x)
+
         return z[:, :, :H, :W]
 
 

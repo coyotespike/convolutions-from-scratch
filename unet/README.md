@@ -2,7 +2,19 @@
 
 ![](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png)
 
-This image might be the best paper summary I've ever seen. Channels, input size, convolutional layers, it's all there.
+This image might be the best paper summary I've ever seen. Channels, input and activations size, convolutional layers, it's all there.
+
+## Performance
+
+After training for only 5 epochs, this model surpassed the performance of the FCN which trained for over 10 epochs. Each epoch takes a bit over 2 minutes on Google Colab's standard GPU, which on the other hand is over twice as slow as the FCN.
+
+Originally, I had rather beautiful Encoder and Decoder classes. Perhaps because the Encoder passed an `outputs` array to each DownConv, with heavy memory usage, the model trained very slowly. Switching to my current clunky implementation sped up training by a factor of 2.
+
+## Aligning Receptive Fields
+
+My first implementation of UNet failed to train at all. The output images turned out to be basically the same as the input images.
+
+I was using convtranspose2d for upsampling, and trimming the upsampled output to match the input size. This likely caused each receptive field to wind up down and to the right.
 
 ## Architecture
 
